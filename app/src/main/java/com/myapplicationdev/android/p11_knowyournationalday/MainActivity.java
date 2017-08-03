@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.preference.PreferenceManager;
+
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -30,15 +31,51 @@ public class MainActivity extends AppCompatActivity {
     String accessCode= "";
 
     ArrayAdapter<String> adapter;
-
+    AlertDialog.Builder dialog;
+    AlertDialog alertDialog;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        lv = (ListView)findViewById(R.id.lv);
-       adapter = new ArrayAdapter<String>(MainActivity.this,android.R.layout.simple_list_item_1,values);
+        lv = (ListView) findViewById(R.id.lv);
+        adapter = new ArrayAdapter<String>(MainActivity.this, android.R.layout.simple_list_item_1, values);
         lv.setAdapter(adapter);
+
+        LayoutInflater inflater = (LayoutInflater)
+                getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        LinearLayout passPhrase =
+                (LinearLayout) inflater.inflate(R.layout.passphrase, null);
+        final EditText etPassphrase = (EditText) passPhrase
+                .findViewById(R.id.editTextPassPhrase);
+
+        dialog = new AlertDialog.Builder(this);
+        dialog.setTitle("Please Login").setView(passPhrase).setCancelable(false)
+                .setPositiveButton("Done", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        String passcode = "738964";
+                        if (etPassphrase.getText().toString().equals(passcode)) {
+                            accessCode = etPassphrase.getText().toString();
+                            Toast.makeText(MainActivity.this, "Correct Access Code, Welcome!", Toast.LENGTH_SHORT).show();
+                            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+                            SharedPreferences.Editor prefsEditor = prefs.edit();
+                            prefsEditor.putString("Accesscode",passcode);
+                            prefsEditor.commit();
+                        } else {
+                            Toast.makeText(MainActivity.this, "Wrong Access Code", Toast.LENGTH_SHORT).show();
+                            finish();
+                        }
+                    }
+                }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                Toast.makeText(MainActivity.this, "Please Rewrite the code again", Toast.LENGTH_LONG).show();
+                finish();
+            }
+        });
+        alertDialog = dialog.create();
+        alertDialog.show();
     }
 
     @Override
@@ -65,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     });
             // Create the AlertDialog object and return it
-            AlertDialog alertDialog = builder.create();
+            alertDialog = builder.create();
             alertDialog.show();
         }else if (item.getItemId() == R.id.sendToFriend) {
             String [] list = new String[] { "Email", "SMS"};
@@ -160,50 +197,15 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-    protected void onStop(){
-        super.onStop();
+    protected void onResume(){
+        super.onResume();
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        SharedPreferences.Editor prefEdit = prefs.edit();
-        prefEdit.putString("accessCode", accessCode);
-        prefEdit.commit();
-    }
-    protected void onStart(){
-        super.onStart();
-        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
-        String code = pref.getString("Access code","");
-        accessCode = code;
-        LayoutInflater inflater = (LayoutInflater)
-                getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        LinearLayout passPhrase =
-                (LinearLayout) inflater.inflate(R.layout.passphrase, null);
-        final EditText etPassphrase = (EditText) passPhrase
-                .findViewById(R.id.editTextPassPhrase);
-
-        if(accessCode.equals("")){
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("Please Login").setView(passPhrase).setCancelable(false)
-                    .setPositiveButton("Done", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            String passcode = "738964";
-                            if(etPassphrase.getText().toString().equals(passcode)){
-                                accessCode = etPassphrase.getText().toString();
-                                Toast.makeText(MainActivity.this, "Correct Access Code, Welcome!",Toast.LENGTH_SHORT).show();
-                            } else{
-                                Toast.makeText(MainActivity.this, "Wrong Access Code",Toast.LENGTH_SHORT).show();
-                                finish();
-                            }
-                        }
-                    }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    Toast.makeText(MainActivity.this, "Please Rewrite the code again", Toast.LENGTH_LONG).show();
-                    finish();
-                }
-            });
-            AlertDialog alertDialog = builder.create();
-            alertDialog.show();
+        String getprefs = prefs.getString("Accesscode","");
+        accessCode = getprefs;
+        if(accessCode.equals("738964")){
+            alertDialog.dismiss();
         }
 
     }
+
 }
